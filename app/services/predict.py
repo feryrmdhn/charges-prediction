@@ -1,11 +1,16 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import pandas as pd
+import sys
 import boto3
 import os
 import json
 from dotenv import load_dotenv
 from botocore.exceptions import BotoCoreError, ClientError
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
+
+from app.utils.utils import validate_api_key
 
 load_dotenv()
 
@@ -23,14 +28,12 @@ class HealthFeatures(BaseModel):
     sex: int
     smoker: int
 
-@router.post("/v1/predict")
-def predict(features: HealthFeatures):
+@router.post("/v1/predict", description="Predicted charges for a smoker's insurance costs")
+async def predict(features: HealthFeatures, api_key: str = Depends(validate_api_key)):
 
     try:
         df_input = pd.DataFrame([features.dict()])
         payload = df_input.values.tolist()
-
-        print("JSON Payload:", json.dumps(payload))
 
         response = runtime.invoke_endpoint(
             EndpointName=ENDPOINT_NAME,
@@ -39,14 +42,23 @@ def predict(features: HealthFeatures):
         )
 
         result = json.loads(response["Body"].read().decode("utf-8"))
-        return {"prediction": result}
 
+        if not isinstance(result, list) or not result:
+            raise ValueError("Invalid response format from model")
+
+        prediction = round(result[0], 2)
+
+        return {
+            "status": 200,
+            "message": "success",
+            "result": prediction
+        }
+
+    # Catch error from AWS sagemaker
     except (BotoCoreError, ClientError) as e:
-        # Tangkap kesalahan dari boto3
         error_message = str(e)
         raise HTTPException(status_code=500, detail=f"AWS Error: {error_message}")
 
     except Exception as e:
-        # Tangkap kesalahan umum
         error_message = str(e)
         raise HTTPException(status_code=500, detail=f"Unexpected Error: {error_message}")

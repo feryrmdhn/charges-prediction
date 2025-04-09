@@ -29,7 +29,7 @@ def create_endpoint_config(config_name, model_name, instance_type, initial_insta
         ]
     )
 
-    print(f"Endpoint configuration created successfully")
+    print(f"Endpoint configuration created successfully!")
     return endpoint_config_response
 
 def create_endpoint(name, config):
