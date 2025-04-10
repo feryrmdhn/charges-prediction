@@ -81,6 +81,10 @@ jobs:
           sudo ./aws/install --update
           aws --version
 
+      - name: Add AWS CLI to PATH
+        run: |
+          export PATH=$PATH:/usr/local/bin
+
       - name: Deploy to EC2 via SSM
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -96,7 +100,7 @@ jobs:
             --parameters 'commands=[
               "set -ex",
               "export AWS_REGION='"$AWS_REGION"'",
-              "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com",
+              "docker login -u AWS -p $(aws ecr get-login-password --region $AWS_REGION) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com",
               "docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest",
               "docker stop fastapi-container || true",
               "docker rm fastapi-container || true",
