@@ -7,4 +7,8 @@ app = FastAPI(
     title = "API"
 )
 
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
+
 app.include_router(predict.router)
