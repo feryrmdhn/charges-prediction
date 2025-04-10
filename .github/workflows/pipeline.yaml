@@ -89,7 +89,7 @@ jobs:
         run: |
           aws ssm send-command \
             --document-name "AWS-RunShellScript" \
-            --instance-ids "$INSTANCE_ID" \
+            --instance-ids "$AWS_EC2_INSTANCE_ID" \
             --region "$AWS_REGION" \
             --comment "Deploy FastAPI container" \
             --parameters 'commands=[
@@ -97,6 +97,6 @@ jobs:
               "docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/fastapi-app:latest",
               "docker stop fastapi-container || true",
               "docker rm fastapi-container || true",
-              "docker run -d --name fastapi-container -p 80:80 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/fastapi-app:latest"
+              "docker run -d --name fastapi-container -p 80:8000 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/fastapi-app:latest"
             ]' \
             --output text
