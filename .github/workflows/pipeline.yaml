@@ -93,10 +93,10 @@ jobs:
             --region "$AWS_REGION" \
             --comment "Deploy FastAPI container" \
             --parameters 'commands=[
-              "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com",
-              "docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/fastapi-app:latest",
-              "docker stop fastapi-container || true",
-              "docker rm fastapi-container || true",
-              "docker run -d --name fastapi-container -p 80:8000 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/fastapi-app:latest"
+              \ "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com\",
+              \ "docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest\",
+              \ "docker stop fastapi-container || true\",
+              \ "docker rm fastapi-container || true\",
+              \ "docker run -d --name fastapi-container -p 80:8000 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest"
             ]' \
             --output text
