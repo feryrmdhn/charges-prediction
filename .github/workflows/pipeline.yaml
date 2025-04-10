@@ -93,6 +93,7 @@ jobs:
             --region "$AWS_REGION" \
             --comment "Deploy FastAPI container" \
             --parameters 'commands=[
+              "set -ex",
               "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com",
               "docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest",
               "docker stop fastapi-container || true",
