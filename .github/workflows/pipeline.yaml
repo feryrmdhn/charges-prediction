@@ -74,16 +74,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Install AWS CLI
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install --update
-          aws --version
-
-      - name: Add AWS CLI to PATH
-        run: |
-          export PATH=$PATH:/usr/local/bin
 
       - name: Deploy to EC2 via SSM
         env:
