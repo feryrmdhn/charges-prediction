@@ -89,10 +89,10 @@ jobs:
             --comment "Deploy FastAPI container" \
             --parameters 'commands=[
               "set -ex",
+              "export AWS_REGION='"$AWS_REGION"'",
               "sudo systemctl status docker || sudo systemctl start docker",
               "sudo systemctl enable docker",
-              "export AWS_REGION='"$AWS_REGION"'",
-              "sudo docker login -u AWS -p $(aws ecr get-login-password --region $AWS_REGION) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com",
+              "aws ecr get-login-password --region '"$AWS_REGION"' | sudo docker login --username AWS --password-stdin '"${{ secrets.AWS_ACCOUNT_ID }}"'.dkr.ecr.'"$AWS_REGION"'.amazonaws.com",
               "sudo docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest",
               "sudo docker stop fastapi-container || true",
               "sudo docker rm fastapi-container || true",
