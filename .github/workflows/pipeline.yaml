@@ -99,11 +99,13 @@ jobs:
             --comment "Deploy FastAPI container" \
             --parameters 'commands=[
               "set -ex",
+              "sudo systemctl status docker || sudo systemctl start docker",
+              "sudo systemctl enable docker",
               "export AWS_REGION='"$AWS_REGION"'",
-              "docker login -u AWS -p $(aws ecr get-login-password --region $AWS_REGION) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com",
-              "docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest",
-              "docker stop fastapi-container || true",
-              "docker rm fastapi-container || true",
-              "docker run -d --name fastapi-container -p 80:8000 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest"
+              "sudo docker login -u AWS -p $(aws ecr get-login-password --region $AWS_REGION) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com",
+              "sudo docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest",
+              "sudo docker stop fastapi-container || true",
+              "sudo docker rm fastapi-container || true",
+              "sudo docker run -d --name fastapi-container -p 80:8000 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest"
             ]' \
             --output text
