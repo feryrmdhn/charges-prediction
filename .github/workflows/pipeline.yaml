@@ -25,6 +25,7 @@ jobs:
 
       - name: Create .env file
         run: |
+          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
           echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" >> .env
           echo "AWS_BUCKET_PREFIX=${{ secrets.AWS_BUCKET_PREFIX }}" >> .env
           echo "AWS_SAGEMAKER_ROLE=${{ secrets.AWS_SAGEMAKER_ROLE }}" >> .env
@@ -77,6 +78,7 @@ jobs:
 
       - name: Deploy to EC2 via SSM
         env:
+          API_KEY: ${{ secrets.API_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
