@@ -9,7 +9,7 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
 if API_KEY is None:
-    raise ValueError("API_KEY environment variable is not set")
+    raise ValueError("API_KEY environment variable is not set!")
 
 API_KEY_NAME = "access_token"
 api_key_header = APIKeyHeader(name=API_KEY_NAME)
