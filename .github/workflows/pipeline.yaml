@@ -35,7 +35,6 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
           echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
           echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
-          echo "AWS_EC2_INSTANCE_ID=${{ secrets.AWS_EC2_INSTANCE_ID }}" >> .env
 
       - name: Build Docker image
         run: |
@@ -71,33 +70,45 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-  deploy:
+ deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      # Setup SSH
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_CICD }}
+          known_hosts: unnecessary
+          if_key_exists: replace
 
-      - name: Deploy to EC2 via SSM
-        env:
-          API_KEY: ${{ secrets.API_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_EC2_INSTANCE_ID: ${{ secrets.AWS_EC2_INSTANCE_ID }}
+      - name: Adding Known Hosts
+        run: ssh-keyscan -H ${{ secrets.EC2_PUBLIC_HOST }} >> ~/.ssh/known_hosts
+
+      # Deploy to EC2 private via EC2 public (jumphost)
+      - name: Deploy to EC2 Private through Public jumphost
         run: |
-          aws ssm send-command \
-            --document-name "AWS-RunShellScript" \
-            --instance-ids "$AWS_EC2_INSTANCE_ID" \
-            --region "$AWS_REGION" \
-            --comment "Deploy FastAPI container" \
-            --parameters 'commands=[
-              "set -ex",
-              "export AWS_REGION='"$AWS_REGION"'",
-              "sudo systemctl status docker || sudo systemctl start docker",
-              "sudo systemctl enable docker",
-              "aws ecr get-login-password --region '"$AWS_REGION"' | sudo docker login --username AWS --password-stdin '"${{ secrets.AWS_ACCOUNT_ID }}"'.dkr.ecr.'"$AWS_REGION"'.amazonaws.com",
-              "sudo docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest",
-              "sudo docker stop fastapi-container || true",
-              "sudo docker rm fastapi-container || true",
-              "sudo docker run -d --name fastapi-container -p 80:8000 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com/fastapi-app:latest"
-            ]' \
-            --output text
+          ssh -J ${{ secrets.AWS_EC2_USER }}@${{ secrets.EC2_PUBLIC_HOST }} ${{ secrets.AWS_EC2_USER }}@${{ secrets.EC2_PRIVATE_HOST }} << 'EOF'
+            set -ex
+            
+            # Setup environment variables
+            export AWS_REGION='${{ secrets.AWS_REGION }}'
+            export AWS_ACCOUNT_ID='${{ secrets.AWS_ACCOUNT_ID }}'
+            
+            # Ensure docker is running
+            sudo systemctl status docker || sudo systemctl start docker
+            sudo systemctl enable docker
+            
+            # Login to ECR
+            aws ecr get-login-password --region ${AWS_REGION} | sudo docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+            
+            # Pull latest container
+            sudo docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/fastapi-app:latest
+            
+            # Stop and remove existing container if it exists
+            sudo docker stop fastapi-container || true
+            sudo docker rm fastapi-container || true
+            
+            # Run new container
+            sudo docker run -d --name fastapi-container -p 80:8000 ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/fastapi-app:latest
+          EOF
