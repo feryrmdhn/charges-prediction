@@ -90,7 +90,7 @@ jobs:
 
       - name: Adding Known Hosts (Public)
         run: |
-          ssh-keyscan -t ed25519,rsa ${{ secrets.EC2_PUBLIC_HOST }} > ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -t ed25519,rsa ${{ secrets.EC2_PUBLIC_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
           chmod 600 ~/.ssh/known_hosts
 
       # Deploy to EC2 private via EC2 public (jumphost)
