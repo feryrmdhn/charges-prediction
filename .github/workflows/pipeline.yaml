@@ -135,5 +135,5 @@ jobs:
             sudo docker rm fastapi-container || true
             
             # Run new container
-            sudo docker run -d --name fastapi-container -p 0.0.0.0:80:8000 ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/fastapi-app:latest
+            sudo docker run -d --name fastapi-container -p 80:8000 ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/fastapi-app:latest
           EOF

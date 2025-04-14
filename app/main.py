@@ -7,7 +7,7 @@ app = FastAPI(
     title = "API"
 )
 
-@app.get("/") # ddefault
+@app.get("/")
 def health_check():
     return {"status": "ok"}
 
