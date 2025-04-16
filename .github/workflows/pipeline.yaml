@@ -32,9 +32,12 @@ jobs:
           echo "AWS_MODEL_NAME=${{ secrets.AWS_MODEL_NAME }}" >> .env
           echo "AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}" >> .env
           echo "AWS_ENDPOINT_NAME=${{ secrets.AWS_ENDPOINT_NAME }}" >> .env
-          echo "AWS_ACCESS_KEY_ID_ML=${{ secrets.AWS_ACCESS_KEY_ID_ML }}" >> .env
-          echo "AWS_SECRET_ACCESS_KEY_ML=${{ secrets.AWS_SECRET_ACCESS_KEY_ML }}" >> .env
           echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+
+          # The key name must be use AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+          # and point to AWS_SECRET_ACCESS_KEY_ML and AWS_SECRET_ACCESS_KEY_ML
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_ML }}" >> .env
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_ML }}" >> .env
 
       - name: Run preprocessing
         run: python app/src/preprocess/preprocess.py
