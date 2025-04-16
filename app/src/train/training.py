@@ -13,12 +13,6 @@ from app.utils.utils import get_sagemaker_client
 
 load_dotenv()
 
-# debug
-print("AWS Access Key ID:", os.getenv('AWS_ACCESS_KEY_ID_ML'))
-print("AWS Secret Access Key:", os.getenv('AWS_SECRET_ACCESS_KEY_ML'))
-print("AWS Region:", os.getenv('AWS_REGION'))
-print("SAGEMAKER ROLE:", os.getenv('AWS_SAGEMAKER_ROLE'))
-
 bucket_name = os.getenv('AWS_BUCKET_NAME')
 prefix = os.getenv('AWS_BUCKET_PREFIX')
 region =  os.getenv('AWS_REGION') 

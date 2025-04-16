@@ -36,6 +36,13 @@ jobs:
           echo "AWS_SECRET_ACCESS_KEY_ML=${{ secrets.AWS_SECRET_ACCESS_KEY_ML }}" >> .env
           echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
 
+      - name: Run debugging
+        run: |
+          echo "AWS_SAGEMAKER_ROLE=${{ secrets.AWS_SAGEMAKER_ROLE }}"
+          echo "AWS_ACCESS_KEY_ID_ML=${{ secrets.AWS_ACCESS_KEY_ID_ML }}"
+          echo "AWS_SECRET_ACCESS_KEY_ML=${{ secrets.AWS_SECRET_ACCESS_KEY_ML }}"
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}"
+
       - name: Run preprocessing
         run: python app/src/preprocess/preprocess.py
 
