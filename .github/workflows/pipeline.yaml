@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for FastAPI
+name: CI/CD Pipeline for MLOps
 
 on:
   push:
@@ -6,7 +6,50 @@ on:
       - main
 
 jobs:
-  build:
+  preprocessing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run preprocessing
+        run: |
+          python app/src/preprocess/preprocess.py
+
+  training:
+    needs: preprocessing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run training
+        run: |
+          python app/src/train/training.py
+
+  build-api:
     runs-on: ubuntu-latest
 
     steps:
@@ -71,7 +114,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   deploy:
-    needs: build
+    needs: build-api
     runs-on: ubuntu-latest
     steps:
       # Setup SSH
