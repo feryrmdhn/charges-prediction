@@ -6,7 +6,36 @@ on:
       - main
 
 jobs:
-  preprocessing:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+        id: python-setup
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Cache environment setup
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            venv
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+  ml-pipeline:
+    needs: setup
     runs-on: ubuntu-latest
 
     steps:
@@ -18,55 +47,62 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run preprocessing
-        run: |
-          python app/src/preprocess/preprocess.py
-
-  training:
-    needs: preprocessing
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
+      - name: Restore cached dependencies
+        uses: actions/cache@v3
+        id: cache-deps
         with:
-          python-version: '3.10'
+          path: |
+            ~/.cache/pip
+            venv
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
-      - name: Install dependencies
+      - name: Install dependencies if cache miss
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Run training
-        run: |
-          python app/src/train/training.py
-
-  build-api:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        if: steps.cache-deps.outputs.cache-hit != 'true'
 
       - name: Create .env file
+        run: |
+          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+          echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" >> .env
+          echo "AWS_BUCKET_PREFIX=${{ secrets.AWS_BUCKET_PREFIX }}" >> .env
+          echo "AWS_SAGEMAKER_ROLE=${{ secrets.AWS_SAGEMAKER_ROLE }}" >> .env
+          echo "AWS_MODEL_NAME=${{ secrets.AWS_MODEL_NAME }}" >> .env
+          echo "AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}" >> .env
+          echo "AWS_ENDPOINT_NAME=${{ secrets.AWS_ENDPOINT_NAME }}" >> .env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+
+      - name: Run preprocessing
+        run: python app/src/preprocess/preprocess.py
+
+      - name: Run training
+        run: python app/src/train/training.py
+
+      - name: Deploy model
+        run: python app/src/deploy/inference.py
+
+  build-api:
+    needs: ml-pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create .env file for Docker image
         run: |
           echo "API_KEY=${{ secrets.API_KEY }}" >> .env
           echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" >> .env
