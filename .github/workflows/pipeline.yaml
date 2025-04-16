@@ -7,7 +7,6 @@ on:
 
 jobs:
   ml-pipeline:
-    needs: setup
     runs-on: ubuntu-latest
 
     steps:
