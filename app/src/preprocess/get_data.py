@@ -23,7 +23,7 @@ s3 = get_s3_client()
 
 def get_data_from_s3(bucket, key):
     response = s3.get_object(Bucket=bucket, Key=key)
-    body = response['Body'].read().decode('utf-8')  # jika CSV
+    body = response['Body'].read().decode('utf-8')  # csv
     df = pd.read_csv(StringIO(body))
     return df
 
